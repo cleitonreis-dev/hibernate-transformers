@@ -16,7 +16,7 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
     private final Class<?> rootClass;
     private AliasToBeanResultTransformer rootTransformer;
     private boolean initialized;
-    private List<Alias> rootAliasesWithIndexes;
+    private List<Alias> rootAliases;
     private Collection<NestedAliases> nestedAliases;
 
     public AliasToNestedBeanResultTransformer(Class<?> beanClass) {
@@ -45,19 +45,19 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
     }
 
     private Object transformRootBean(Object[] tuple) {
-        Object[] rootTuple = new Object[rootAliasesWithIndexes.size()];
-        String[] rootAliases = new String[rootAliasesWithIndexes.size()];
+        Object[] newTuple = new Object[rootAliases.size()];
+        String[] newAliases = new String[rootAliases.size()];
 
-        rootAliasesWithIndexes.forEach(alias->{
-            rootAliases[alias.index] = alias.name;
-            rootTuple[alias.index] = tuple[alias.originalIndex];
+        rootAliases.forEach(alias->{
+            newAliases[alias.index] = alias.name;
+            newTuple[alias.index] = tuple[alias.originalIndex];
         });
 
-        return rootTransformer.transformTuple(rootTuple,rootAliases);
+        return rootTransformer.transformTuple(newTuple,newAliases);
     }
 
     private void initialize(String[] aliases) {
-        rootAliasesWithIndexes = new ArrayList<>();
+        rootAliases = new ArrayList<>();
         Map<String,NestedAliases> nestedAliasesMap = new HashMap<>();
         Map<String,Field> allRootFields = findAllFields(rootClass,new HashMap<>());
 
@@ -65,7 +65,7 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
             int nestedDelimiterIndex = aliases[i].indexOf('.');
 
             if(nestedDelimiterIndex < 0){
-                rootAliasesWithIndexes.add(new Alias(aliases[i],rootAliasesWithIndexes.size(),i));
+                rootAliases.add(new Alias(aliases[i],rootAliases.size(),i));
                 continue;
             }
 
@@ -140,15 +140,15 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
         }
 
         Object transform(Object[] tuple){
-            Object[] nestedTuple = new Object[aliases.size()];
-            String[] newNestedAliases = new String[aliases.size()];
+            Object[] newTuple = new Object[aliases.size()];
+            String[] newAliases = new String[aliases.size()];
 
             aliases.forEach(alias->{
-                newNestedAliases[alias.index] = alias.name;
-                nestedTuple[alias.index] = tuple[alias.originalIndex];
+                newAliases[alias.index] = alias.name;
+                newTuple[alias.index] = tuple[alias.originalIndex];
             });
 
-            return nestedTransformer.transformTuple(nestedTuple,newNestedAliases);
+            return nestedTransformer.transformTuple(newTuple,newAliases);
         }
     }
 }
