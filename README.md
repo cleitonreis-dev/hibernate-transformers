@@ -11,7 +11,7 @@ Transforms multi-level nested beans with inheritance support
 Example
 -------
 TO's
-```
+```java
 public static class BasicTO{
     private Integer id;
     private String description;
@@ -24,7 +24,7 @@ public static class ComplexTO{
 }
 ```
 Example with native sql to keep it simple but, it will also work well with projection list
-```
+```java
 List<ComplexTO> complexTOs = (List<ComplexTO>)
 session.createNativeQuery(
     "select ct.id as id, ct.description as description, bt.id as \"basicTo.id\", bt.description as \"basicTo.description\" " +
