@@ -4,6 +4,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.property.access.internal.PropertyAccessStrategyFieldImpl;
 import org.hibernate.transform.AliasToBeanResultTransformer;
 import org.hibernate.transform.AliasedTupleSubsetResultTransformer;
+import org.hibernate.transform.ResultTransformer;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -31,7 +32,7 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
             initialize(aliases);
         }
 
-        Object rootBean = transformRootBean(tuple);
+        Object rootBean = transform(rootAliases, tuple, rootTransformer);
         transformNested(rootBean, tuple);
 
         return rootBean;
@@ -39,21 +40,21 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
 
     private void transformNested(Object rootBean, Object[] tuple) {
         nestedAliases.forEach(nestedAlias->{
-            Object subBean = nestedAlias.transform(tuple);
+            Object subBean =  transform(nestedAlias.aliases, tuple, nestedAlias.nestedTransformer);
             setValue(rootBean, nestedAlias.rootAliasName, subBean);
         });
     }
 
-    private Object transformRootBean(Object[] tuple) {
-        Object[] newTuple = new Object[rootAliases.size()];
-        String[] newAliases = new String[rootAliases.size()];
+    private Object transform(Collection<Alias> aliases, Object[] tuple, ResultTransformer transformer) {
+        Object[] newTuple = new Object[aliases.size()];
+        String[] newAliases = new String[aliases.size()];
 
-        rootAliases.forEach(alias->{
+        aliases.forEach(alias->{
             newAliases[alias.index] = alias.name;
             newTuple[alias.index] = tuple[alias.originalIndex];
         });
 
-        return rootTransformer.transformTuple(newTuple,newAliases);
+        return transformer.transformTuple(newTuple,newAliases);
     }
 
     private void initialize(String[] aliases) {
@@ -128,27 +129,13 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
 
     private class NestedAliases {
         final String rootAliasName;
-        final Class<?> nestedBeanClass;
         final List<Alias> aliases;
         final AliasToNestedBeanResultTransformer nestedTransformer;
 
         NestedAliases(String rootAliasName, Class<?> nestedBeanClass) {
             this.rootAliasName = rootAliasName;
-            this.nestedBeanClass = nestedBeanClass;
             nestedTransformer = new AliasToNestedBeanResultTransformer(nestedBeanClass);
             aliases = new ArrayList<>();
-        }
-
-        Object transform(Object[] tuple){
-            Object[] newTuple = new Object[aliases.size()];
-            String[] newAliases = new String[aliases.size()];
-
-            aliases.forEach(alias->{
-                newAliases[alias.index] = alias.name;
-                newTuple[alias.index] = tuple[alias.originalIndex];
-            });
-
-            return nestedTransformer.transformTuple(newTuple,newAliases);
         }
     }
 }
