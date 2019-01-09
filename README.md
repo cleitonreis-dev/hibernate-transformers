@@ -23,13 +23,16 @@ public static class ComplexTO{
     private BasicTO basicTo;
 }
 ```
-Example with native sql to keep it simple but, it will also work well with projection list
+Native SQL to keep it simple, but it will also work fine with projection list
+```SQL
+select ct.id as id, ct.description as description, bt.id as "basicTo.id", bt.description as "basicTo.description"
+fom complex_table ct
+inner join basic_table bt on bt.id = ct.basic_table_id
+```
+List with transformer
 ```java
-List<ComplexTO> complexTOs = (List<ComplexTO>)
-session.createNativeQuery(
-    "select ct.id as id, ct.description as description, bt.id as \"basicTo.id\", bt.description as \"basicTo.description\" " +
-    "fom complex_table ct " +
-    "inner join basic_table bt on bt.id = ct.basic_table_id"
-).setResultTransformer(AliasToNestedBeanResultTransformer.instance(ComplexTO.class))
-.list();
+List<ComplexTO> complexTOs = (List<ComplexTO>)session
+    .createNativeQuery(sql)
+    .setResultTransformer(AliasToNestedBeanResultTransformer.instance(ComplexTO.class))
+    .list();
 ```
