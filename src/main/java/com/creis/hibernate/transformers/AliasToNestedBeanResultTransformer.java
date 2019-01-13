@@ -6,7 +6,6 @@ import org.hibernate.transform.AliasToBeanResultTransformer;
 import org.hibernate.transform.AliasedTupleSubsetResultTransformer;
 import org.hibernate.transform.ResultTransformer;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -60,7 +59,7 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
     private void initialize(String[] aliases) {
         rootAliases = new ArrayList<>();
         Map<String,NestedAliases> nestedAliasesMap = new HashMap<>();
-        Map<String,Field> allRootFields = findAllFields(rootClass,new HashMap<>());
+        Map<String,Class<?>> allRootFieldsType = findAllFieldsType(rootClass,new HashMap<>());
 
         for(int i = 0; i < aliases.length; i++){
             int nestedDelimiterIndex = aliases[i].indexOf('.');
@@ -74,7 +73,7 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
             String nestedAlias = aliases[i].substring(nestedDelimiterIndex + 1);
 
             if(!nestedAliasesMap.containsKey(alias)){
-                nestedAliasesMap.put(alias, new NestedAliases(alias, findFieldType(alias, allRootFields)));
+                nestedAliasesMap.put(alias, new NestedAliases(alias, findFieldType(alias, allRootFieldsType)));
             }
 
             List<Alias> nestedAliases = nestedAliasesMap.get(alias).aliases;
@@ -86,12 +85,12 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
         initialized = true;
     }
 
-    private Class<?> findFieldType(String fieldName, Map<String,Field> allFields){
-        if(!allFields.containsKey(fieldName)){
+    private Class<?> findFieldType(String fieldName, Map<String,Class<?>> allFieldsType){
+        if(!allFieldsType.containsKey(fieldName)){
             throw new HibernateException(format("Field %s not found in class %s",fieldName,rootClass.getName()));
         }
 
-        return allFields.get(fieldName).getType();
+        return allFieldsType.get(fieldName);
     }
 
     private void setValue(Object rootBean, String rootAliasName, Object subBean) {
@@ -100,13 +99,13 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
                 .getSetter().set(rootBean, subBean, null);
     }
 
-    private static Map<String,Field> findAllFields(Class<?> targetClass, Map<String,Field> fieldsMap){
+    private static Map<String,Class<?>> findAllFieldsType(Class<?> targetClass, Map<String,Class<?>> fieldsMap){
         if(targetClass.getSuperclass() != Object.class){
-            findAllFields(targetClass.getSuperclass(), fieldsMap);
+            findAllFieldsType(targetClass.getSuperclass(), fieldsMap);
         }
 
         Stream.of(targetClass.getDeclaredFields())
-                .forEach(field -> fieldsMap.put(field.getName(), field));
+                .forEach(field -> fieldsMap.put(field.getName(), field.getType()));
 
         return fieldsMap;
     }
