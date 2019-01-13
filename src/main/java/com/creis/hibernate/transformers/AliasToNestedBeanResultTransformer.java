@@ -2,6 +2,7 @@ package com.creis.hibernate.transformers;
 
 import org.hibernate.HibernateException;
 import org.hibernate.property.access.internal.PropertyAccessStrategyFieldImpl;
+import org.hibernate.property.access.spi.Setter;
 import org.hibernate.transform.AliasToBeanResultTransformer;
 import org.hibernate.transform.AliasedTupleSubsetResultTransformer;
 import org.hibernate.transform.ResultTransformer;
@@ -40,7 +41,7 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
     private void transformNested(Object rootBean, Object[] tuple) {
         nestedAliases.forEach(nestedAlias->{
             Object subBean =  transform(nestedAlias.aliases, tuple, nestedAlias.nestedTransformer);
-            setValue(rootBean, nestedAlias.rootAliasName, subBean);
+            nestedAlias.setter.set(rootBean, subBean, null);
         });
     }
 
@@ -73,7 +74,9 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
             String nestedAlias = aliases[i].substring(nestedDelimiterIndex + 1);
 
             if(!nestedAliasesMap.containsKey(alias)){
-                nestedAliasesMap.put(alias, new NestedAliases(alias, findFieldType(alias, allRootFieldsType)));
+                nestedAliasesMap.put(alias, new NestedAliases(
+                    alias, findFieldType(alias, allRootFieldsType), getSetter(alias)
+                ));
             }
 
             List<Alias> nestedAliases = nestedAliasesMap.get(alias).aliases;
@@ -93,10 +96,10 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
         return allFieldsType.get(fieldName);
     }
 
-    private void setValue(Object rootBean, String rootAliasName, Object subBean) {
-        PropertyAccessStrategyFieldImpl.INSTANCE
-                .buildPropertyAccess(rootClass, rootAliasName)
-                .getSetter().set(rootBean, subBean, null);
+    private Setter getSetter(String fieldName){
+        return PropertyAccessStrategyFieldImpl.INSTANCE
+                .buildPropertyAccess(rootClass, fieldName)
+                .getSetter();
     }
 
     private static Map<String,Class<?>> findAllFieldsType(Class<?> targetClass, Map<String,Class<?>> fieldsMap){
@@ -130,11 +133,13 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
         final String rootAliasName;
         final List<Alias> aliases;
         final AliasToNestedBeanResultTransformer nestedTransformer;
+        final Setter setter;
 
-        NestedAliases(String rootAliasName, Class<?> nestedBeanClass) {
+        NestedAliases(String rootAliasName, Class<?> nestedBeanClass, Setter setter) {
             this.rootAliasName = rootAliasName;
             nestedTransformer = new AliasToNestedBeanResultTransformer(nestedBeanClass);
             aliases = new ArrayList<>();
+            this.setter = setter;
         }
     }
 }
