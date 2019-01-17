@@ -20,7 +20,7 @@ public class AliasToNestedBeanResultTransformerTests {
         Object[] tuple = {1,"test"};
         String[] aliases = {"id","description"};
 
-        BasicBean bean = (BasicBean)AliasToNestedBeanResultTransformer.instance(BasicBean.class)
+        BasicBean bean = (BasicBean)AliasToNestedBeanResultTransformer.of(BasicBean.class)
                 .transformTuple(tuple,aliases);
 
         assertEquals(tuple[0], bean.id);
@@ -33,7 +33,7 @@ public class AliasToNestedBeanResultTransformerTests {
         String[] aliases = {"id","description","nested.id","nested.description"};
 
         BeanWithNestedBasicOne bean = (BeanWithNestedBasicOne)
-                AliasToNestedBeanResultTransformer.instance(BeanWithNestedBasicOne.class)
+                AliasToNestedBeanResultTransformer.of(BeanWithNestedBasicOne.class)
                 .transformTuple(tuple,aliases);
 
         assertEquals(tuple[0], bean.id);
@@ -56,7 +56,7 @@ public class AliasToNestedBeanResultTransformerTests {
                 "nestedMultiLevel.nested.id","nestedMultiLevel.nested.description"};
 
         MultiLevelNestedBean bean = (MultiLevelNestedBean)
-                AliasToNestedBeanResultTransformer.instance(MultiLevelNestedBean.class)
+                AliasToNestedBeanResultTransformer.of(MultiLevelNestedBean.class)
                         .transformTuple(tuple,aliases);
 
         assertNotNull(bean.nested);
@@ -78,7 +78,7 @@ public class AliasToNestedBeanResultTransformerTests {
         String[] aliases = {"id","description","createdAt","nested.id","nested.description"};
 
         InheritedBean bean = (InheritedBean)
-                AliasToNestedBeanResultTransformer.instance(InheritedBean.class)
+                AliasToNestedBeanResultTransformer.of(InheritedBean.class)
                         .transformTuple(tuple,aliases);
 
         BeanWithNestedBasicOne parent = (BeanWithNestedBasicOne)bean;
@@ -98,7 +98,7 @@ public class AliasToNestedBeanResultTransformerTests {
         Object[] tuple = {1,"test",2,"test 2"};
         String[] aliases = {"id","description","nest.id","nest.description"};
 
-        AliasToNestedBeanResultTransformer.instance(BeanWithNestedBasicOne.class).transformTuple(tuple,aliases);
+        AliasToNestedBeanResultTransformer.of(BeanWithNestedBasicOne.class).transformTuple(tuple,aliases);
     }
 
 

@@ -33,6 +33,6 @@ List with transformer
 ```java
 List<ComplexTO> complexTOs = (List<ComplexTO>)session
     .createNativeQuery(sql)
-    .setResultTransformer(AliasToNestedBeanResultTransformer.instance(ComplexTO.class))
+    .setResultTransformer(AliasToNestedBeanResultTransformer.of(ComplexTO.class))
     .list();
 ```

@@ -113,7 +113,7 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
         return fieldsMap;
     }
 
-    public static AliasToNestedBeanResultTransformer instance(Class<?> beanClass){
+    public static AliasToNestedBeanResultTransformer of(Class<?> beanClass){
         return new AliasToNestedBeanResultTransformer(beanClass);
     }
 
