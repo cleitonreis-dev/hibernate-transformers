@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 
 public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResultTransformer{
 
@@ -114,7 +115,7 @@ public class AliasToNestedBeanResultTransformer extends AliasedTupleSubsetResult
     }
 
     public static AliasToNestedBeanResultTransformer of(Class<?> beanClass){
-        return new AliasToNestedBeanResultTransformer(beanClass);
+        return new AliasToNestedBeanResultTransformer(requireNonNull(beanClass, "beanClass is required"));
     }
 
     private class Alias{

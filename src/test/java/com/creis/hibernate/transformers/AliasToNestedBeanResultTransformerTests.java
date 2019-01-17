@@ -101,6 +101,13 @@ public class AliasToNestedBeanResultTransformerTests {
         AliasToNestedBeanResultTransformer.of(BeanWithNestedBasicOne.class).transformTuple(tuple,aliases);
     }
 
+    @Test
+    public void shouldValidateRequiredParametersOfStaticFactoryMethodOf(){
+        exceptions.expect(NullPointerException.class);
+        exceptions.expectMessage("beanClass is required");
+        AliasToNestedBeanResultTransformer.of(null);
+    }
+
 
     public static class BasicBean{
         private Integer id;
